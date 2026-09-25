@@ -1864,6 +1864,23 @@
             .content-body { padding-left: 12px !important; padding-right: 12px !important; }
         }
 
+        /* Keep the primary navigation visible while the student scrolls. */
+        .phone { padding-bottom: calc(62px + var(--safe-bottom)); }
+        .bottom-nav-bar {
+            position: fixed !important;
+            left: 50% !important;
+            right: auto !important;
+            bottom: 0 !important;
+            width: min(100%, 540px) !important;
+            transform: translateX(-50%);
+        }
+        html[data-mobile-runtime="true"] .bottom-nav-bar {
+            left: 0 !important;
+            right: 0 !important;
+            width: 100vw !important;
+            transform: none;
+        }
+
         .app-dialog-overlay {
             position: fixed;
             inset: 0;
@@ -1950,20 +1967,6 @@
             <div style="font-size:12px;font-weight:800;color:rgba(255,255,255,0.55);letter-spacing:0.4px;">Ketuk layar untuk mulai</div>
             <div class="splash-footer-text">© 2025 · Sistem Asesmen · v1.0</div>
         </div>
-    </div>
-
-    <div class="mobile-notification-wrap">
-        <button id="mobileNotificationButton" class="mobile-notification-btn" type="button" aria-label="Notifikasi aplikasi" aria-expanded="false" onclick="toggleMobileNotifications(event)">
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-            <span id="mobileNotificationBadge" class="mobile-notification-badge hidden">0</span>
-        </button>
-        <section id="mobileNotificationPanel" class="mobile-notification-panel" aria-label="Pusat notifikasi">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-bottom:1px solid #f1f5f9;">
-                <div><div style="font-size:12px;font-weight:900;">Notifikasi Aplikasi</div><div id="mobileNotificationSummary" style="font-size:9px;color:#94a3b8;font-weight:700;margin-top:2px;">Tidak ada notifikasi baru</div></div>
-                <button type="button" onclick="markAllMobileNotificationsRead(event)" style="border:0;background:none;color:#2563eb;font-size:9px;font-weight:900;cursor:pointer;">Tandai dibaca</button>
-            </div>
-            <div id="mobileNotificationList" class="mobile-notification-list"></div>
-        </section>
     </div>
 
     <div id="mobileDrawerOverlay" class="mobile-drawer-overlay" onclick="toggleExamDrawer(false)"></div>
@@ -2656,7 +2659,10 @@ function renderMobileNotifications() {
     const list = document.getElementById('mobileNotificationList');
     const badge = document.getElementById('mobileNotificationBadge');
     const summary = document.getElementById('mobileNotificationSummary');
-    if (!list || !badge || !summary) return;
+    if (!list || !badge || !summary) {
+        renderProfileNotifications();
+        return;
+    }
     const items = getMobileNotifications();
     const unread = items.filter(item => !item.read).length;
     badge.textContent = unread > 99 ? '99+' : unread;
@@ -2952,6 +2958,16 @@ function getExamScheduleSettings() {
     catch (e) { return {}; }
 }
 
+function getPackageScheduleSettings(pkg) {
+    const code = normalizeMobilePaket(pkg);
+    const settings = getExamScheduleSettings();
+    return {
+        start: settings['jadwal_' + code + '_mulai'] || '',
+        end: settings['jadwal_' + code + '_selesai'] || '',
+        duration: Number(settings['durasi_' + code] || settings.waktuUjian || 5)
+    };
+}
+
 function parseExamScheduleDate(value) {
     const raw = String(value || '').trim();
     if (!raw) return null;
@@ -2963,21 +2979,22 @@ function formatExamScheduleDate(date) {
     return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-function getExamScheduleState(now = new Date()) {
-    const settings = getExamScheduleSettings();
-    const start = parseExamScheduleDate(settings.jadwalMulai);
-    const end = parseExamScheduleDate(settings.jadwalSelesai);
-    if (!start && !end) return { open: true, configured: false, message: 'Jadwal ujian belum dibatasi.' };
+function getExamScheduleState(pkg = _loginPkg || currentStudent.pkg, now = new Date()) {
+    if (!pkg) return { open: true, configured: false, message: 'Pilih mata pelajaran untuk melihat jadwal.' };
+    const settings = getPackageScheduleSettings(pkg);
+    const start = parseExamScheduleDate(settings.start);
+    const end = parseExamScheduleDate(settings.end);
+    if (!start && !end) return { open: true, configured: false, duration: settings.duration, message: 'Jadwal mata pelajaran belum dibatasi.' };
     if (start && end && end <= start) return { open: false, configured: true, invalid: true, message: 'Jadwal ujian belum valid. Hubungi guru.' };
-    if (start && now < start) return { open: false, configured: true, start, end, message: 'Ujian dibuka ' + formatExamScheduleDate(start) + '.' };
-    if (end && now > end) return { open: false, configured: true, start, end, message: 'Jadwal ujian telah berakhir pada ' + formatExamScheduleDate(end) + '.' };
-    return { open: true, configured: true, start, end, message: end ? 'Ujian sedang berlangsung sampai ' + formatExamScheduleDate(end) + '.' : 'Ujian sedang berlangsung.' };
+    if (start && now < start) return { open: false, configured: true, start, end, duration: settings.duration, message: 'Ujian dibuka ' + formatExamScheduleDate(start) + '.' };
+    if (end && now > end) return { open: false, configured: true, start, end, duration: settings.duration, message: 'Jadwal ujian telah berakhir pada ' + formatExamScheduleDate(end) + '.' };
+    return { open: true, configured: true, start, end, duration: settings.duration, message: end ? 'Ujian sedang berlangsung sampai ' + formatExamScheduleDate(end) + '.' : 'Ujian sedang berlangsung.' };
 }
 
-function renderExamScheduleStatus() {
+function renderExamScheduleStatus(pkg = _loginPkg) {
     const status = document.getElementById('profileScheduleStatus');
     if (!status) return;
-    const schedule = getExamScheduleState();
+    const schedule = getExamScheduleState(pkg);
     status.textContent = '🗓️ ' + schedule.message;
     status.style.color = schedule.open ? '#087F5B' : '#B95000';
     status.style.background = schedule.open ? '#E6FCF5' : '#FFF4E6';
@@ -3171,6 +3188,7 @@ function selectMapel(el, pkg) {
     // Tampilkan info mapel terpilih
     document.getElementById('selectedMapelInfo').classList.remove('hidden');
     document.getElementById('selectedMapelName').textContent = mapelLabels[pkg] || pkg;
+    renderExamScheduleStatus(pkg);
 
     // Aktifkan tombol mulai
     let btnMulai = document.getElementById('btnMulaiUjian');
@@ -3206,7 +3224,7 @@ async function _handleLoginAsync(id, pkg) {
         return;
     }
 
-    const schedule = getExamScheduleState();
+    const schedule = getExamScheduleState(pkg);
     if (!schedule.open) {
         addMobileNotification('Ujian belum tersedia', schedule.message, 'warning');
         appAlert(schedule.message, 'Jadwal Ujian');
@@ -3267,7 +3285,7 @@ async function _handleLoginAsync(id, pkg) {
     currentIdx      = 0;
     currentExamIsRemedial = Boolean(submittedRecord);
     currentExamLockKey = lockKey;
-    timeLeft        = (parseInt(localStorage.getItem('pmm_waktuUjian')) || 5) * 60;
+    timeLeft        = (getPackageScheduleSettings(pkg).duration || 5) * 60;
 
     document.getElementById('examNavTitle').textContent = currentStudent.subjectName;
     buildNavGrid();
