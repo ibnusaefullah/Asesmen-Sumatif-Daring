@@ -9,9 +9,7 @@
     <title>Aplikasi Asesmen Sumatif Mobile</title>
     <script src="supabase-config.js"></script>
     <script>
-        // ── ID SPREADSHEET ────────────────────────────────────────
         window.PMM_CONFIG = Object.freeze({
-            SPREADSHEET_ID: '1bNg_FapdBpBssxtYCuHdVD-bAMXPbFJoHZ-TSq2bsSk',
             SUPABASE_URL: window.SUPABASE_PUBLIC_CONFIG?.url || '',
             SUPABASE_ANON_KEY: window.SUPABASE_PUBLIC_CONFIG?.anonKey || ''
         });
@@ -1944,7 +1942,7 @@
             <div class="splash-progress-track">
                 <div class="splash-progress-bar" id="splashProgressBar"></div>
             </div>
-            <div data-splash-status style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">Menghubungkan ke Google Sheets...</div>
+            <div data-splash-status style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">Menghubungkan ke Supabase...</div>
         </div>
 
         <!-- Bottom: Version & tap hint -->
@@ -1998,7 +1996,7 @@
                 </span>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <div id="syncIndicator" style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.85);">⏳</div>
-                    <button id="refreshSheetDataButton" type="button" title="Sinkronisasi data terbaru dari Google Sheets" aria-label="Sinkronisasi data terbaru dari Google Sheets" onclick="refreshSheetData()" style="width:30px;height:30px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;">↻</button>
+                    <button id="refreshSupabaseButton" type="button" title="Sinkronisasi data terbaru dari Supabase" aria-label="Sinkronisasi data terbaru dari Supabase" onclick="refreshSupabaseData()" style="width:30px;height:30px;border:1px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;">↻</button>
                 </div>
             </div>
             <div style="margin-top:12px;position:relative;z-index:2;">
@@ -2084,6 +2082,16 @@
                             <div style="font-size:10px;font-weight:800;color:var(--text-muted);margin-top:2px;">Pencapaian</div>
                         </div>
                     </div>
+                    <div id="profileScheduleStatus" style="margin-top:12px;padding:10px 12px;border-radius:12px;background:#F8FAFC;border:1px solid #DCEAF8;font-size:11px;font-weight:800;color:#64748B;">
+                        Memeriksa jadwal ujian...
+                    </div>
+                    <div id="profileNotificationBox" style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#FFFFFF;border:1px solid #DCEAF8;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;">
+                            <span style="font-size:11px;font-weight:900;color:#263746;">Notifikasi Peserta</span>
+                            <span id="profileNotificationCount" style="font-size:10px;font-weight:900;color:#155A8A;">0 baru</span>
+                        </div>
+                        <div id="profileNotificationList" style="display:grid;gap:6px;"></div>
+                    </div>
                 </div>
 
                 <div style="display:flex;gap:10px;">
@@ -2105,60 +2113,7 @@
 
                 <!-- Subject Cards Grid -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="subjectGrid">
-
-                    <div class="subj-card" data-pkg="IPA-A" onclick="selectMapel(this,'IPA-A')" style="--card-color:#0EA5E9;--card-bg:#F0F9FF;">
-                        <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);">🔬</div>
-                        <div class="subj-name">IPA</div>
-                        <div class="subj-sub">Ilmu Pengetahuan Alam</div>
-                        <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                    </div>
-
-                    <div class="subj-card" data-pkg="MTK-B" onclick="selectMapel(this,'MTK-B')" style="--card-color:#8B5CF6;--card-bg:#F5F3FF;">
-                        <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);">📐</div>
-                        <div class="subj-name">Matematika</div>
-                        <div class="subj-sub">Matematika Dasar</div>
-                        <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                    </div>
-
-                    <div class="subj-card" data-pkg="BIN-C" onclick="selectMapel(this,'BIN-C')" style="--card-color:#10B981;--card-bg:#ECFDF5;">
-                        <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#10B981,#059669);">📖</div>
-                        <div class="subj-name">B. Indonesia</div>
-                        <div class="subj-sub">Bahasa Indonesia</div>
-                        <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                    </div>
-
-                    <div class="subj-card" data-pkg="IPAS-D" onclick="selectMapel(this,'IPAS-D')" style="--card-color:#F59E0B;--card-bg:#FFFBEB;">
-                        <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#F59E0B,#D97706);">🌍</div>
-                        <div class="subj-name">IPAS</div>
-                        <div class="subj-sub">Sains &amp; Sosial</div>
-                        <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                    </div>
-
-                    <div class="subj-card" data-pkg="PJOK-E" onclick="selectMapel(this,'PJOK-E')" style="--card-color:#3B82F6;--card-bg:#EFF6FF;">
-                        <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);">⚽</div>
-                        <div class="subj-name">PJOK</div>
-                        <div class="subj-sub">Penjas Orkes</div>
-                        <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                    </div>
-
-                    <div class="subj-card" data-pkg="SBdP-F" onclick="selectMapel(this,'SBdP-F')" style="--card-color:#EC4899;--card-bg:#FDF2F8;">
-                        <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#EC4899,#BE185D);">🎨</div>
-                        <div class="subj-name">SBdP</div>
-                        <div class="subj-sub">Seni Budaya &amp; Prakarya</div>
-                        <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                    </div>
-
-                    <div class="subj-card" data-pkg="PPKn-G" onclick="selectMapel(this,'PPKn-G')" style="--card-color:#EF4444;--card-bg:#FEF2F2;grid-column:span 2;">
-                        <div style="display:flex;align-items:center;gap:14px;width:100%;">
-                            <div class="subj-icon-wrap" style="background:linear-gradient(135deg,#EF4444,#991B1B);">🇮🇩</div>
-                            <div>
-                                <div class="subj-name">PPKn</div>
-                                <div class="subj-sub">Pendidikan Pancasila &amp; Kewarganegaraan</div>
-                            </div>
-                            <div class="subj-check hidden" style="margin-left:auto;"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
-                        </div>
-                    </div>
-
+                    <div style="grid-column:1/-1;padding:18px;text-align:center;color:var(--text-muted);font-size:12px;font-weight:800;">Memuat paket soal dari Supabase...</div>
                 </div><!-- /subjectGrid -->
 
                 <div id="selectedMapelInfo" class="hidden" style="margin-top:12px;padding:10px 14px;background:#EFF6FF;border-radius:14px;border:1.5px solid #BFDBFE;display:flex;align-items:center;gap:8px;">
@@ -2614,23 +2569,9 @@ const leaderboardData = [
 ];
 
 /* ════════════════════════════════════════════════════════
-   KONFIGURASI SINKRONISASI GOOGLE SHEETS
-   Ganti GAS_URL dengan URL Web App dari Google Apps Script
-   setelah deploy code.gs ke script.google.com
+   KONFIGURASI SUPABASE
+   Nilai utama berasal dari supabase-config.js pada GitHub Pages.
 ════════════════════════════════════════════════════════ */
-const SPREADSHEET_ID = window.PMM_CONFIG.SPREADSHEET_ID;
-const EMBEDDED_GAS_URL = '<?= GAS_URL ?>';
-
-function readExamGasUrlFromQuery() {
-    try {
-        const params = new URLSearchParams(window.location.search || '');
-        const url = params.get('gasUrl') || params.get('gas') || params.get('url') || '';
-        return normalizeExamGasUrl(url);
-    } catch (e) {
-        return '';
-    }
-}
-
 function readExamSupabaseConfigFromQuery() {
     try {
         const params = new URLSearchParams(window.location.search || '');
@@ -2643,71 +2584,10 @@ function readExamSupabaseConfigFromQuery() {
     }
 }
 
-function normalizeExamGasUrl(value) {
-    const raw = String(value || '').trim();
-    if (!raw) return '';
-    let candidate = raw;
-    if (!/^https?:\/\//i.test(candidate)) candidate = 'https://' + candidate;
-    try {
-        const parsed = new URL(candidate);
-        const pathname = parsed.pathname.replace(/\/+$/, '');
-        const isScriptWebApp = /\/macros\/(?:s|u)\/[^/]+(?:\/exec)?$/i.test(pathname) || /\/macros\/(?:s|u)\/[^/]+$/i.test(pathname);
-        if (!isScriptWebApp) return '';
-        if (/\/macros\/(?:s|u)\/[^/]+$/i.test(pathname) && !/\/exec$/i.test(pathname)) {
-            parsed.pathname = pathname + '/exec';
-        }
-        return parsed.toString().replace(/\/$/, '');
-    } catch (e) {
-        return '';
-    }
-}
-
-function isElectronRuntime() {
-    return Boolean(window.electronAPI || window.process?.versions?.electron || /Electron\//i.test(navigator.userAgent));
-}
-
-function getRuntimeGasUrlCandidates() {
-    const candidates = [
-        EMBEDDED_GAS_URL,
-        window.__GAS_URL__,
-        window.__PMM_CONFIG__?.gasUrl,
-        localStorage.getItem('pmm_gasUrl'),
-        readExamGasUrlFromQuery(),
-    ];
-
-    if (/^https:\/\/script\.google\.com\/macros\//i.test(window.location.href)) {
-        candidates.unshift(window.location.href);
-    }
-    if (/^https:\/\/script\.google\.com\/macros\//i.test(document.referrer || '')) {
-        candidates.unshift(document.referrer);
-    }
-
-    const electronGasUrl = window.electronAPI?.gasUrl || window.electronAPI?.GAS_URL;
-    if (electronGasUrl) candidates.unshift(electronGasUrl);
-    return candidates;
-}
-
-async function resolveRuntimeGasUrl() {
-    const directUrl = getRuntimeGasUrlCandidates().map(normalizeExamGasUrl).find(Boolean);
-    if (directUrl) return directUrl;
-
-    const getGasUrl = window.electronAPI?.getGasUrl;
-    if (typeof getGasUrl === 'function') {
-        try {
-            const bridgeUrl = await getGasUrl();
-            return normalizeExamGasUrl(bridgeUrl);
-        } catch (e) {
-            console.warn('Bridge Electron tidak mengembalikan URL Apps Script:', e);
-        }
-    }
-    return '';
-}
-
-let GAS_URL = normalizeExamGasUrl(EMBEDDED_GAS_URL) || normalizeExamGasUrl(localStorage.getItem('pmm_gasUrl') || '') || readExamGasUrlFromQuery();
 const QUERY_SUPABASE_CONFIG = readExamSupabaseConfigFromQuery();
 let SUPABASE_URL = normalizeMobileSupabaseUrl(window.PMM_CONFIG.SUPABASE_URL || localStorage.getItem('pmm_supabaseUrl') || QUERY_SUPABASE_CONFIG.url || '');
 let SUPABASE_ANON_KEY = String(window.PMM_CONFIG.SUPABASE_ANON_KEY || localStorage.getItem('pmm_supabaseAnonKey') || QUERY_SUPABASE_CONFIG.key || '').trim();
-let startupSheetReady = false;
+let startupDataReady = false;
 
 function normalizeMobileSupabaseUrl(value) {
     const raw = String(value || '').trim().replace(/\/$/, '');
@@ -2716,7 +2596,7 @@ function normalizeMobileSupabaseUrl(value) {
 }
 
 function hasMobileDataConnection() {
-    return Boolean((SUPABASE_URL && SUPABASE_ANON_KEY) || GAS_URL);
+    return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
 
 async function supabaseMobileFetch(table, query = '', options = {}) {
@@ -2787,6 +2667,21 @@ function renderMobileNotifications() {
             <span class="mobile-notification-dot"></span>
             <div style="min-width:0;flex:1;"><div style="font-size:11px;font-weight:900;color:#0f172a;">${escapeMobileNotificationText(item.title)}</div><div style="font-size:10px;font-weight:700;color:#64748b;line-height:1.35;margin-top:2px;">${escapeMobileNotificationText(item.message)}</div><div style="font-size:8px;color:#94a3b8;font-weight:700;margin-top:4px;">${formatMobileNotificationTime(item.createdAt)}</div></div>
         </div>`).join('') : '<div class="mobile-notification-empty"><div style="font-size:20px;margin-bottom:6px;">🔔</div>Belum ada notifikasi</div>';
+    renderProfileNotifications();
+}
+
+function renderProfileNotifications() {
+    const list = document.getElementById('profileNotificationList');
+    const count = document.getElementById('profileNotificationCount');
+    if (!list || !count) return;
+    const items = getMobileNotifications();
+    const unread = items.filter(item => !item.read).length;
+    count.textContent = unread + ' baru';
+    list.innerHTML = items.length ? items.slice(0, 3).map(item => `
+        <div style="display:flex;gap:7px;align-items:flex-start;padding:7px 8px;border-radius:8px;background:${item.read ? '#F8FAFC' : '#EFF6FF'};border:1px solid ${item.read ? '#EEF2F7' : '#BFDBFE'};">
+            <span style="width:7px;height:7px;border-radius:50%;background:${item.read ? '#CBD5E1' : '#2563EB'};margin-top:4px;flex-shrink:0;"></span>
+            <div style="min-width:0;flex:1;"><div style="font-size:10px;font-weight:900;color:#263746;">${escapeMobileNotificationText(item.title)}</div><div style="font-size:9px;font-weight:700;color:#71808D;line-height:1.35;margin-top:1px;">${escapeMobileNotificationText(item.message)}</div></div>
+        </div>`).join('') : '<div style="font-size:10px;font-weight:700;color:#94A3B8;padding:4px 0;">Belum ada notifikasi.</div>';
 }
 
 function escapeMobileNotificationText(value) {
@@ -2825,76 +2720,28 @@ document.addEventListener('click', event => {
     }
 });
 
-/* ─── Ambil soal dari Google Sheets ──────────────────── */
-async function fetchSoalDariSheets(paket) {
+/* ─── Ambil soal dari Supabase ───────────────────────── */
+async function fetchSoalDariDatabase(paket) {
     const supabaseData = await mobileDataRequest('getSoal');
-    if (supabaseData) {
-        const targetPaket = normalizeMobilePaket(paket);
-        const filtered = (supabaseData.soal || []).filter(s => (!targetPaket || normalizeMobilePaket(s.paket) === targetPaket) && s.teks).map((s, i) => ({
-            id: i + 1, question: s.teks, options: s.opsi || [], optionImages: s.opsiGambar || ['', '', '', ''], correctAnswer: Number(s.jawaban), gambarUrl: /^data:image\//i.test(s.gambarUrl || '') ? s.gambarUrl : ''
-        }));
-        return filtered.length ? filtered : null;
-    }
-    if (!GAS_URL) return null;
-    try {
-        const res  = await fetch(GAS_URL, {
-            method:  'POST',
-            headers: {'Content-Type':'text/plain;charset=utf-8'},
-            body:    JSON.stringify({ action:'getSoal' }),
-        });
-        const data = await res.json();
-        if (!data.soal || !data.soal.length) return null;
-
-        // Filter sesuai paket, map field Sheets → format questionBanks
-        const targetPaket = normalizeMobilePaket(paket);
-        const filtered = data.soal
-            .filter(s => (!targetPaket || normalizeMobilePaket(s.paket) === targetPaket) && s.teks)
-            .map((s, i) => ({
-                id:            i + 1,
-                question:      s.teks,
-                options:       s.opsi || [],
-                optionImages:  s.opsiGambar || ['', '', '', ''],
-                correctAnswer: Number(s.jawaban),
-                gambarUrl:     /^data:image\//i.test(s.gambarUrl || '') ? s.gambarUrl : '',
-            }));
-        return filtered.length ? filtered : null;
-    } catch(e) {
-        console.warn('Gagal ambil soal dari Sheets:', e);
-        return null;
-    }
+    if (!supabaseData) return null;
+    const targetPaket = normalizeMobilePaket(paket);
+    const filtered = (supabaseData.soal || []).filter(s => (!targetPaket || normalizeMobilePaket(s.paket) === targetPaket) && s.teks).map((s, i) => ({
+        id: i + 1, question: s.teks, options: s.opsi || [], optionImages: s.opsiGambar || ['', '', '', ''], correctAnswer: Number(s.jawaban), gambarUrl: /^data:image\//i.test(s.gambarUrl || '') ? s.gambarUrl : ''
+    }));
+    return filtered.length ? filtered : null;
 }
 
 function normalizeMobilePaket(value) {
     return String(value || '').trim().toUpperCase().replace(/\s+/g, '-');
 }
 
-const MOBILE_PAKET_CATALOG = {
-    'PABP-A': 'PA dan BP',
-    'PANCASILA-B': 'Pendidikan Pancasila',
-    'MTK-C': 'Matematika',
-    'BIN-D': 'Bahasa Indonesia',
-    'IPAS-E': 'IPAS',
-    'PJOK-F': 'PJOK',
-    'SBDP-G': 'Seni dan Budaya',
-    'BING-H': 'Bahasa Inggris',
-    'BIND-I': 'Bahasa Indramayu',
-    'MULOK-J': 'Mulok / PLH / Seni Tari Indramayu',
-    'KODING-KA-K': 'Koding dan Kecerdasan Artifisial'
-};
-
-const MOBILE_PAKET_ICONS = {
-    'PABP-A': '🕌', 'PANCASILA-B': '🇮🇩', 'MTK-C': '📐', 'BIN-D': '📖',
-    'IPAS-E': '🌍', 'PJOK-F': '⚽', 'SBDP-G': '🎨', 'BING-H': '🌐',
-    'BIND-I': '🗣️', 'MULOK-J': '🌾', 'KODING-KA-K': '💻'
-};
-
 function renderMobileSubjectGrid(packages) {
     const grid = document.getElementById('subjectGrid');
     if (!grid) return;
     const list = [...new Set((packages || []).map(item => normalizeMobilePaket(item)).filter(Boolean))];
     grid.innerHTML = list.map((code, index) => {
-        const label = MOBILE_PAKET_CATALOG[code] || code;
-        const icon = MOBILE_PAKET_ICONS[code] || '📚';
+        const label = code;
+        const icon = '📚';
         const colors = ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#0EA5E9', '#EC4899'];
         const color = colors[index % colors.length];
         const safeCode = escapeMobileText(code);
@@ -2905,7 +2752,7 @@ function renderMobileSubjectGrid(packages) {
             <div class="subj-check hidden"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:white;stroke-width:2.5;stroke-linecap:round;"><polyline points="20 6 9 17 4 12"/></svg></div>
         </div>`;
     }).join('') || '<div style="grid-column:1/-1;padding:18px;text-align:center;color:var(--text-muted);font-size:12px;font-weight:800;">Belum ada paket soal tersedia.</div>';
-    list.forEach(code => { mapelLabels[code] = MOBILE_PAKET_CATALOG[code] || code; });
+    list.forEach(code => { mapelLabels[code] = code; });
 }
 
 function escapeMobileText(value) {
@@ -2913,38 +2760,20 @@ function escapeMobileText(value) {
 }
 
 async function loadMobilePackageCatalog() {
-    const packages = new Set(Object.keys(MOBILE_PAKET_CATALOG));
+    const packages = new Set();
     const supabaseData = await mobileDataRequest('getSoal');
-    if (supabaseData) {
-        const soalList = supabaseData.soal || [];
-        if (soalList.length) localStorage.setItem('pmm_soal', JSON.stringify(soalList));
-        soalList.forEach(soal => { const code = normalizeMobilePaket(soal.paket); if (code) packages.add(code); });
-        renderMobileSubjectGrid([...packages]);
-        return;
-    }
-    if (GAS_URL) {
-        try {
-            const res = await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'getSoal' }) });
-            const data = await res.json();
-            const soalList = data.soal || [];
-            if (soalList.length) localStorage.setItem('pmm_soal', JSON.stringify(soalList));
-            soalList.forEach(soal => {
-                const code = normalizeMobilePaket(soal.paket);
-                if (code) packages.add(code);
-            });
-        } catch (e) { console.warn('Gagal memuat daftar paket soal:', e); }
-    }
+    const soalList = supabaseData?.soal || [];
+    if (soalList.length) localStorage.setItem('pmm_soal', JSON.stringify(soalList));
+    soalList.forEach(soal => { const code = normalizeMobilePaket(soal.paket); if (code) packages.add(code); });
     renderMobileSubjectGrid([...packages]);
 }
 
-async function loadStartupSheetData() {
-    GAS_URL = await resolveRuntimeGasUrl();
-    if (GAS_URL) localStorage.setItem('pmm_gasUrl', GAS_URL);
+async function loadStartupDatabaseData() {
     SUPABASE_URL = normalizeMobileSupabaseUrl(window.PMM_CONFIG.SUPABASE_URL || localStorage.getItem('pmm_supabaseUrl') || SUPABASE_URL);
     SUPABASE_ANON_KEY = String(window.PMM_CONFIG.SUPABASE_ANON_KEY || localStorage.getItem('pmm_supabaseAnonKey') || SUPABASE_ANON_KEY).trim();
 
     const catalogTask = loadMobilePackageCatalog();
-    const siswaTask = hasMobileDataConnection() ? fetchSiswaDariSheets().then(siswa => {
+    const siswaTask = hasMobileDataConnection() ? fetchStudentsFromDatabase().then(siswa => {
         if (!Array.isArray(siswa)) return 0;
         localStorage.setItem('pmm_siswa', JSON.stringify(siswa));
         siswa.forEach(s => {
@@ -2957,7 +2786,7 @@ async function loadStartupSheetData() {
         });
         return siswa.length;
     }) : Promise.resolve(0);
-    const settingsTask = hasMobileDataConnection() ? fetchSettingsDariSheets().then(settings => {
+    const settingsTask = hasMobileDataConnection() ? fetchSettingsFromDatabase().then(settings => {
         if (!settings) return;
         const waktu = Number(settings.waktuUjian || 5);
         if (waktu > 0) localStorage.setItem('pmm_waktuUjian', waktu);
@@ -2966,11 +2795,11 @@ async function loadStartupSheetData() {
 
     const results = await Promise.allSettled([catalogTask, siswaTask, settingsTask]);
     const loadedStudents = results[1].status === 'fulfilled' ? results[1].value : 0;
-    return { url: GAS_URL, supabase: Boolean(SUPABASE_URL && SUPABASE_ANON_KEY), loadedStudents };
+    return { supabase: Boolean(SUPABASE_URL && SUPABASE_ANON_KEY), loadedStudents };
 }
 
-async function refreshSheetData() {
-    const button = document.getElementById('refreshSheetDataButton');
+async function refreshSupabaseData() {
+    const button = document.getElementById('refreshSupabaseButton');
     const indicator = document.getElementById('syncIndicator');
     if (button) {
         button.disabled = true;
@@ -2980,10 +2809,10 @@ async function refreshSheetData() {
     if (indicator) indicator.textContent = '⏳ Menarik data...';
 
     try {
-        const startup = await loadStartupSheetData();
+        const startup = await loadStartupDatabaseData();
         if (indicator) {
-            indicator.textContent = startup.url || startup.supabase ? '🟢 Data diperbarui' : '🔴 Mode offline';
-            indicator.style.color = startup.url || startup.supabase ? '#1DB87A' : '#E53935';
+            indicator.textContent = startup.supabase ? '🟢 Data diperbarui' : '🔴 Mode offline';
+            indicator.style.color = startup.supabase ? '#1DB87A' : '#E53935';
         }
     } catch (error) {
         console.warn('Gagal menarik data terbaru:', error);
@@ -3000,75 +2829,29 @@ async function refreshSheetData() {
     }
 }
 
-/* ─── Ambil daftar siswa dari Google Sheets ──────────── */
-async function fetchSiswaDariSheets() {
+/* ─── Ambil daftar siswa dari Supabase ──────────────── */
+async function fetchStudentsFromDatabase() {
     const supabaseData = await mobileDataRequest('getSiswa');
-    if (supabaseData) return supabaseData.siswa || null;
-    if (!GAS_URL) return null;
-    try {
-        const res  = await fetch(GAS_URL, {
-            method:  'POST',
-            headers: {'Content-Type':'text/plain;charset=utf-8'},
-            body:    JSON.stringify({ action:'getSiswa' }),
-        });
-        const data = await res.json();
-        return data.siswa || null;
-    } catch(e) {
-        console.warn('Gagal ambil data siswa dari Sheets:', e);
-        return null;
-    }
+    return supabaseData ? supabaseData.siswa || null : null;
 }
 
-/* ─── Ambil pengaturan ujian dari Google Sheets ───────── */
-async function fetchSettingsDariSheets() {
+/* ─── Ambil pengaturan ujian dari Supabase ──────────── */
+async function fetchSettingsFromDatabase() {
     const supabaseData = await mobileDataRequest('getSettings');
-    if (supabaseData) return supabaseData.settings || null;
-    if (!GAS_URL) return null;
+    return supabaseData ? supabaseData.settings || null : null;
+}
+
+/* ─── Kirim nilai ke Supabase ───────────────────────── */
+async function submitScoreToDatabase(studentData, correct, total, score) {
     try {
-        const res = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: {'Content-Type':'text/plain;charset=utf-8'},
-            body: JSON.stringify({ action:'getSettings' }),
-        });
-        const data = await res.json();
-        return data.settings || null;
-    } catch(e) {
-        console.warn('Gagal ambil pengaturan dari Sheets:', e);
-        return null;
+        await mobileDataRequest('submitNilai', { id: studentData.id, nama: studentData.name, kelas: studentData.classRoom, paket: studentData.pkg, benar: correct, salah: total - correct, nilai: score });
+        console.log('✅ Nilai tersimpan di Supabase');
+    } catch (e) {
+        console.warn('⚠ Gagal menyimpan nilai ke Supabase (data tetap tersimpan lokal):', e);
     }
 }
 
-/* ─── Kirim nilai ke Google Sheets ───────────────────── */
-async function kirimNilaiKeSheets(studentData, correct, total, score) {
-    const supabaseData = await mobileDataRequest('submitNilai', { id: studentData.id, nama: studentData.name, kelas: studentData.classRoom, paket: studentData.pkg, benar: correct, salah: total - correct, nilai: score });
-    if (supabaseData) return;
-    if (!GAS_URL) return;
-    try {
-        await fetch(GAS_URL, {
-            method:  'POST',
-            headers: {'Content-Type':'text/plain;charset=utf-8'},
-            body:    JSON.stringify({
-                action:  'submitNilai',
-                id:      studentData.id,
-                nama:    studentData.name,
-                kelas:   studentData.classRoom,
-                paket:   studentData.pkg,
-                benar:   correct,
-                salah:   total - correct,
-                nilai:   score,
-                waktu:   new Date().toLocaleString('id-ID', {
-                             year:'numeric', month:'2-digit', day:'2-digit',
-                             hour:'2-digit', minute:'2-digit', hour12:false
-                         }).replace(',',''),
-            }),
-        });
-        console.log('✅ Nilai terkirim ke Google Sheets');
-    } catch(e) {
-        console.warn('⚠ Gagal kirim nilai ke Sheets (data tetap tersimpan lokal):', e);
-    }
-}
-
-/* ─── Ambil GAS_URL dari Apps Script/browser/Electron saat halaman dibuka ─ */
+/* ─── Ambil data Supabase saat halaman dibuka ───────── */
 window.addEventListener('DOMContentLoaded', async () => {
     renderMobileNotifications();
 
@@ -3078,13 +2861,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!splash) return;
 
     const splashStatus = splash.querySelector('[data-splash-status]');
-    if (splashStatus) splashStatus.textContent = 'Menghubungkan ke Google Sheets...';
+    if (splashStatus) splashStatus.textContent = 'Menghubungkan ke Supabase...';
 
     let splashClosed = false;
     const splashTimeout = setTimeout(() => dismissSplash(), 7000);
 
     splash.addEventListener('click', () => {
-        if (startupSheetReady) {
+        if (startupDataReady) {
             clearTimeout(splashTimeout);
             dismissSplash();
         }
@@ -3108,9 +2891,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         }, { once: true });
     }
 
-    loadStartupSheetData().then(startup => {
-        startupSheetReady = true;
-        const online = Boolean(startup.url || startup.supabase);
+    loadStartupDatabaseData().then(startup => {
+        startupDataReady = true;
+        const online = Boolean(startup.supabase);
         if (indicator) {
             indicator.textContent = online ? `🟢 Database: ${startup.loadedStudents} siswa siap` : '🔴 Database belum dikonfigurasi';
             indicator.style.color = online ? '#1DB87A' : '#E53935';
@@ -3121,8 +2904,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             setTimeout(() => appAlert('Database belum terhubung. Isi URL Project dan publishable/anon key di file supabase-config.js, lalu upload ulang file tersebut ke GitHub Pages.', 'Database Belum Terhubung'), 350);
         }
     }).catch(error => {
-        console.warn('Gagal menyiapkan data awal Sheet:', error);
-        startupSheetReady = true;
+        console.warn('Gagal menyiapkan data awal Supabase:', error);
+        startupDataReady = true;
         if (indicator) {
             indicator.textContent = '🔴 Mode Offline (soal lokal)';
             indicator.style.color = '#E53935';
@@ -3162,6 +2945,57 @@ function getConfiguredKKM() {
     const settings = JSON.parse(localStorage.getItem('pmm_settings') || '{}');
     const kkm = Number(settings.kkm);
     return Number.isFinite(kkm) ? kkm : 75;
+}
+
+function getExamScheduleSettings() {
+    try { return JSON.parse(localStorage.getItem('pmm_settings') || '{}'); }
+    catch (e) { return {}; }
+}
+
+function parseExamScheduleDate(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+    const date = new Date(raw);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatExamScheduleDate(date) {
+    return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function getExamScheduleState(now = new Date()) {
+    const settings = getExamScheduleSettings();
+    const start = parseExamScheduleDate(settings.jadwalMulai);
+    const end = parseExamScheduleDate(settings.jadwalSelesai);
+    if (!start && !end) return { open: true, configured: false, message: 'Jadwal ujian belum dibatasi.' };
+    if (start && end && end <= start) return { open: false, configured: true, invalid: true, message: 'Jadwal ujian belum valid. Hubungi guru.' };
+    if (start && now < start) return { open: false, configured: true, start, end, message: 'Ujian dibuka ' + formatExamScheduleDate(start) + '.' };
+    if (end && now > end) return { open: false, configured: true, start, end, message: 'Jadwal ujian telah berakhir pada ' + formatExamScheduleDate(end) + '.' };
+    return { open: true, configured: true, start, end, message: end ? 'Ujian sedang berlangsung sampai ' + formatExamScheduleDate(end) + '.' : 'Ujian sedang berlangsung.' };
+}
+
+function renderExamScheduleStatus() {
+    const status = document.getElementById('profileScheduleStatus');
+    if (!status) return;
+    const schedule = getExamScheduleState();
+    status.textContent = '🗓️ ' + schedule.message;
+    status.style.color = schedule.open ? '#087F5B' : '#B95000';
+    status.style.background = schedule.open ? '#E6FCF5' : '#FFF4E6';
+    status.style.borderColor = schedule.open ? '#B2F2DD' : '#FFD8A8';
+    updateExamStartButton(schedule);
+}
+
+setInterval(() => {
+    const profileStep = document.getElementById('login-step-2');
+    if (profileStep && !profileStep.classList.contains('hidden')) renderExamScheduleStatus();
+}, 30000);
+
+function updateExamStartButton(schedule = getExamScheduleState()) {
+    const button = document.getElementById('btnMulaiUjian');
+    if (!button || !_loginPkg) return;
+    button.style.opacity = schedule.open ? '1' : '0.5';
+    button.style.pointerEvents = schedule.open ? 'auto' : 'none';
+    button.title = schedule.open ? 'Mulai ujian' : schedule.message;
 }
 
 function resetExamState() {
@@ -3246,7 +3080,6 @@ let _loginPkg  = '';   // Paket soal yang dipilih
 
 // Daftar label mapel untuk tampilan
 const mapelLabels = {
-    ...MOBILE_PAKET_CATALOG,
 };
 
 function goToStep(step) {
@@ -3286,7 +3119,7 @@ async function cariSiswaByNISN() {
     let siswa = authorizedStudents[nisn];
 
     if (!siswa && hasMobileDataConnection()) {
-        const siswaDariDatabase = await fetchSiswaDariSheets();
+        const siswaDariDatabase = await fetchStudentsFromDatabase();
         (siswaDariDatabase || []).forEach(item => {
             if (item.id && item.nama && String(item.status || 'aktif').toLowerCase() !== 'nonaktif') {
                 authorizedStudents[String(item.id).trim().toUpperCase()] = {
@@ -3316,6 +3149,8 @@ async function cariSiswaByNISN() {
     const avatarEmojis = ['🧒','👦','👧','🙋','👨‍🎓','👩‍🎓','🧑‍💻','🏅'];
     document.getElementById('profileAvatar').textContent = avatarEmojis[nisn.charCodeAt(nisn.length-1) % avatarEmojis.length];
 
+    renderProfileNotifications();
+    renderExamScheduleStatus();
     goToStep(2);
 }
 
@@ -3339,8 +3174,7 @@ function selectMapel(el, pkg) {
 
     // Aktifkan tombol mulai
     let btnMulai = document.getElementById('btnMulaiUjian');
-    btnMulai.style.opacity = '1';
-    btnMulai.style.pointerEvents = 'auto';
+    updateExamStartButton();
 }
 
 function mulaiUjianDariStep3() {
@@ -3352,11 +3186,11 @@ function mulaiUjianDariStep3() {
 function handleLogin(e) { if(e) e.preventDefault(); mulaiUjianDariStep3(); }
 
 async function _handleLoginAsync(id, pkg) {
-    // Sinkronkan siswa lebih dulu agar peserta baru di Sheets bisa login.
+    // Sinkronkan siswa lebih dulu agar peserta baru di Supabase bisa login.
     if (hasMobileDataConnection()) {
-        const siswaDariSheets = await fetchSiswaDariSheets();
-        if (siswaDariSheets && siswaDariSheets.length) {
-            siswaDariSheets.forEach(s => {
+        const siswaDariDatabase = await fetchStudentsFromDatabase();
+        if (siswaDariDatabase && siswaDariDatabase.length) {
+            siswaDariDatabase.forEach(s => {
                 if (s.id && s.nama && String(s.status || 'aktif').toLowerCase() !== 'nonaktif') {
                     authorizedStudents[s.id.toUpperCase()] = {
                         name: s.nama,
@@ -3369,6 +3203,14 @@ async function _handleLoginAsync(id, pkg) {
 
     if (!hasMobileDataConnection()) {
         appAlert('Hubungkan database terlebih dahulu agar paket soal dapat dimuat.');
+        return;
+    }
+
+    const schedule = getExamScheduleState();
+    if (!schedule.open) {
+        addMobileNotification('Ujian belum tersedia', schedule.message, 'warning');
+        appAlert(schedule.message, 'Jadwal Ujian');
+        renderProfileNotifications();
         return;
     }
 
@@ -3397,25 +3239,25 @@ async function _handleLoginAsync(id, pkg) {
     const origText  = submitBtn ? submitBtn.innerHTML : '';
     if (submitBtn) { submitBtn.innerHTML = '⏳ Memuat soal...'; submitBtn.disabled = true; }
 
-    // Paket soal aktif selalu berasal dari hasil import/sinkronisasi Google Sheets.
-    let soalDariSheets = null;
+    // Paket soal aktif selalu berasal dari hasil sinkronisasi Supabase.
+    let soalDariDatabase = null;
     if (hasMobileDataConnection()) {
-        soalDariSheets = await fetchSoalDariSheets(pkg);
-        if (soalDariSheets) {
-            console.log(`✅ ${soalDariSheets.length} soal dimuat dari Google Sheets (${pkg})`);
+        soalDariDatabase = await fetchSoalDariDatabase(pkg);
+        if (soalDariDatabase) {
+            console.log(`✅ ${soalDariDatabase.length} soal dimuat dari Supabase (${pkg})`);
         }
     }
 
     if (submitBtn) { submitBtn.innerHTML = origText; submitBtn.disabled = false; }
 
-    const questionsToUse = soalDariSheets;
+    const questionsToUse = soalDariDatabase;
 
     if (!questionsToUse || !questionsToUse.length) {
         appAlert('Soal untuk paket "' + pkg + '" tidak ditemukan. Hubungi guru Anda.');
         return;
     }
 
-    // Update subjectName jika dari Sheets belum punya
+    // Update subjectName jika dari Supabase belum punya
     if (!currentStudent.subjectName || currentStudent.subjectName === pkg) {
         currentStudent.subjectName = mapelLabels[normalizeMobilePaket(pkg)] || pkg;
     }
@@ -3794,8 +3636,8 @@ function finishExam() {
         localStorage.setItem('pmm_nilai', JSON.stringify(localNilai.slice(0, 100)));
     } catch (e) { console.warn('Gagal menyimpan nilai lokal:', e); }
 
-    // ── Kirim nilai ke Google Sheets (async, fire-and-forget) ──
-    kirimNilaiKeSheets(currentStudent, correct, total, score);
+    // ── Kirim nilai ke Supabase (async, fire-and-forget) ──
+    submitScoreToDatabase(currentStudent, correct, total, score);
 
     // Percobaan yang sudah dikumpulkan tidak boleh dibuka kembali sebagai lembar yang sama.
     resetExamState();
