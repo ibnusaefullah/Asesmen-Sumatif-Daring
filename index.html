@@ -7,12 +7,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Aplikasi Asesmen Sumatif Mobile</title>
+    <script src="supabase-config.js"></script>
     <script>
         // ── ID SPREADSHEET ────────────────────────────────────────
         window.PMM_CONFIG = Object.freeze({
             SPREADSHEET_ID: '1bNg_FapdBpBssxtYCuHdVD-bAMXPbFJoHZ-TSq2bsSk',
-            SUPABASE_URL: '',
-            SUPABASE_ANON_KEY: ''
+            SUPABASE_URL: window.SUPABASE_PUBLIC_CONFIG?.url || '',
+            SUPABASE_ANON_KEY: window.SUPABASE_PUBLIC_CONFIG?.anonKey || ''
         });
         // ─────────────────────────────────────────────────────────
     </script>
@@ -2706,6 +2707,7 @@ let startupSheetReady = false;
 
 function normalizeMobileSupabaseUrl(value) {
     const raw = String(value || '').trim().replace(/\/$/, '');
+    if (!raw || /PROJECT-REF|TEMPEL_/i.test(raw)) return '';
     return /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(raw) ? raw : '';
 }
 
@@ -3104,12 +3106,16 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     loadStartupSheetData().then(startup => {
         startupSheetReady = true;
+        const online = Boolean(startup.url || startup.supabase);
         if (indicator) {
-            indicator.textContent = startup.url || startup.supabase ? `🟢 Database: ${startup.loadedStudents} siswa siap` : '🔴 Mode Offline (soal lokal)';
-            indicator.style.color = startup.url || startup.supabase ? '#1DB87A' : '#E53935';
+            indicator.textContent = online ? `🟢 Database: ${startup.loadedStudents} siswa siap` : '🔴 Database belum dikonfigurasi';
+            indicator.style.color = online ? '#1DB87A' : '#E53935';
         }
-        if (splashStatus) splashStatus.textContent = startup.url || startup.supabase ? 'Data siswa, soal, dan pengaturan siap digunakan' : 'Mode offline siap digunakan';
+        if (splashStatus) splashStatus.textContent = online ? 'Data siswa, soal, dan pengaturan siap digunakan' : 'Konfigurasi database belum diisi';
         dismissSplash();
+        if (!online) {
+            setTimeout(() => appAlert('Database belum terhubung. Isi URL Project dan publishable/anon key di file supabase-config.js, lalu upload ulang file tersebut ke GitHub Pages.', 'Database Belum Terhubung'), 350);
+        }
     }).catch(error => {
         console.warn('Gagal menyiapkan data awal Sheet:', error);
         startupSheetReady = true;
