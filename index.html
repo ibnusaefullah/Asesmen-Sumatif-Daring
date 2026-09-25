@@ -2350,6 +2350,10 @@
                     <div class="action-icon board"><svg class="svg-icon" viewBox="0 0 24 24" style="font-size:22px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></div>
                     <span class="action-label">Peringkat</span>
                 </button>
+                <button class="action-btn hidden" id="remedialAction" onclick="startRemedialExam()">
+                    <div class="action-icon blue"><svg class="svg-icon" viewBox="0 0 24 24" style="font-size:22px;"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/><path d="M12 8v4l3 2"/></svg></div>
+                    <span class="action-label">Remedial</span>
+                </button>
             </div>
         </div>
     </div><!-- /screen-result -->
@@ -3136,6 +3140,38 @@ let userAnswers = [];
 let examTimer;
 let timeLeft = 300;
 let currentUserRank = 4; // rank simulasi user saat ini
+let currentExamIsRemedial = false;
+let currentExamLockKey = '';
+
+function getExamLockKey(studentId = currentStudent.id, pkg = currentStudent.pkg) {
+    return `${String(studentId || '').trim().toUpperCase()}::${normalizeMobilePaket(pkg)}`;
+}
+
+function getSubmittedExamRecords() {
+    try { return JSON.parse(localStorage.getItem('pmm_submitted_exams') || '{}'); }
+    catch (e) { return {}; }
+}
+
+function saveSubmittedExamRecord(key, record) {
+    const records = getSubmittedExamRecords();
+    records[key] = record;
+    localStorage.setItem('pmm_submitted_exams', JSON.stringify(records));
+}
+
+function getConfiguredKKM() {
+    const settings = JSON.parse(localStorage.getItem('pmm_settings') || '{}');
+    const kkm = Number(settings.kkm);
+    return Number.isFinite(kkm) ? kkm : 75;
+}
+
+function resetExamState() {
+    clearInterval(examTimer);
+    activeQuestions = [];
+    userAnswers = [];
+    currentIdx = 0;
+    currentExamIsRemedial = false;
+    currentExamLockKey = '';
+}
 
 /* ─── HELPERS ─────────────────────────────────── */
 function selectStoryPackage(pkgCode) {
@@ -3336,6 +3372,13 @@ async function _handleLoginAsync(id, pkg) {
         return;
     }
 
+    const lockKey = getExamLockKey(id, pkg);
+    const submittedRecord = getSubmittedExamRecords()[lockKey];
+    if (submittedRecord && Number(submittedRecord.score) >= getConfiguredKKM()) {
+        appAlert('Ujian untuk paket ini sudah dikumpulkan dan dinyatakan tuntas. Lembar ujian tidak dapat dibuka kembali.', 'Ujian Sudah Dikumpulkan');
+        return;
+    }
+
     const siswaData = authorizedStudents[id] || {};
     if (!siswaData.name && !hasMobileDataConnection()) {
         appAlert('ID peserta tidak ditemukan. Periksa kembali NISN atau ID Anda.');
@@ -3380,6 +3423,8 @@ async function _handleLoginAsync(id, pkg) {
     activeQuestions = shuffleArray(questionsToUse);
     userAnswers     = new Array(activeQuestions.length).fill(null);
     currentIdx      = 0;
+    currentExamIsRemedial = Boolean(submittedRecord);
+    currentExamLockKey = lockKey;
     timeLeft        = (parseInt(localStorage.getItem('pmm_waktuUjian')) || 5) * 60;
 
     document.getElementById('examNavTitle').textContent = currentStudent.subjectName;
@@ -3668,6 +3713,15 @@ function finishExam() {
     let wrong     = answered - correct;
     let notDone   = total - answered;
     let completion = Math.round((answered / total) * 100);
+    const kkm = getConfiguredKKM();
+    const examLockKey = currentExamLockKey || getExamLockKey();
+
+    saveSubmittedExamRecord(examLockKey, {
+        score,
+        kkm,
+        submittedAt: new Date().toISOString(),
+        remedial: currentExamIsRemedial
+    });
 
     /* Hitung poin simulasi leaderboard */
     let pts = score * 4 + correct * 5;
@@ -3695,13 +3749,16 @@ function finishExam() {
 
     let remark = document.getElementById('remarkBadge');
     let rt     = document.getElementById('remarkText');
-    if (score >= 75) {
+    if (score >= kkm) {
         rt.textContent = 'Hebat Sekali! Bintang Sekolah! 🌟';
         remark.className = 'remark-badge good';
     } else {
-        rt.textContent = 'Semangat! Ayo Berlatih Lagi 📚';
+        rt.textContent = `Belum mencapai KKM ${kkm}. Silakan ikuti remedial 📚`;
         remark.className = 'remark-badge bad';
     }
+
+    const remedialAction = document.getElementById('remedialAction');
+    if (remedialAction) remedialAction.classList.toggle('hidden', score >= kkm);
 
     if (score >= 60) {
         launchConfetti();
@@ -3739,6 +3796,19 @@ function finishExam() {
 
     // ── Kirim nilai ke Google Sheets (async, fire-and-forget) ──
     kirimNilaiKeSheets(currentStudent, correct, total, score);
+
+    // Percobaan yang sudah dikumpulkan tidak boleh dibuka kembali sebagai lembar yang sama.
+    resetExamState();
+}
+
+function startRemedialExam() {
+    const record = getSubmittedExamRecords()[getExamLockKey()];
+    if (!record || Number(record.score) >= getConfiguredKKM()) {
+        appAlert('Remedial hanya tersedia untuk nilai di bawah KKM.');
+        return;
+    }
+    currentExamIsRemedial = true;
+    _handleLoginAsync(currentStudent.id, currentStudent.pkg);
 }
 
 /* ─── LEADERBOARD ─────────────────────────────── */
